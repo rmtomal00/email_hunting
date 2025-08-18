@@ -31,7 +31,7 @@ func smtpCheck(mxHost, mailFrom, rcptTo string) (map[string]string, error) {
 
 	// Helper: send EHLO
 	sendEHLO := func(c net.Conn) (bool, error) {
-		_, err := fmt.Fprintf(c, "EHLO tm71.top\r\n")
+		_, err := fmt.Fprintf(c, "EHLO tm71.top\r\n")  // this should be your domain mail server
 		if err != nil {
 			return false, err
 		}
@@ -203,7 +203,7 @@ func main() {
 	app := gin.Default()
 	app.Use(gin.Recovery(), gin.Logger())
 
-	app.POST("/email-ckeck", func(c *gin.Context) {
+	app.POST("/email-check", func(c *gin.Context) {
 		var body map[string]interface{}
 		if err := c.BindJSON(&body); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid JSON"})
@@ -226,7 +226,7 @@ func main() {
 		mxHost := strings.TrimSuffix(mxRecords[0].Host, ".")
 
 		// Replace with your sender email
-		mailFrom := "rmtomal@tm71.top"
+		mailFrom := "rmtomal@tm71.top"  // this should be your domain mail server email
 
 		logs, err := smtpCheck(mxHost, mailFrom, email)
 		if err != nil {
