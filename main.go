@@ -253,11 +253,16 @@ func main() {
 		if code == 250 {
 			isOk = true
 		}
+		risky := false
+		if strings.Contains(mxHost, domain) {
+			risky = true
+		}
 		c.JSON(200, gin.H{
 			"status":        status,
 			"mx_host":       mxHost,
 			"logs":          logs,
 			"isDeliverable": isOk,
+			"risky":         risky,
 			"errorStatus":   false,
 		})
 	})
