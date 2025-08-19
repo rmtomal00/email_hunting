@@ -5,14 +5,41 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
+func getMyHostname() string {
+	// Step 1: detect your outward-facing IP (by opening a UDP "connection" to a known host)
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return "localhost"
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	ip := localAddr.IP.String()
+
+	// Step 2: reverse lookup (PTR)
+	names, err := net.LookupAddr(ip)
+	if err != nil || len(names) == 0 {
+		return ip // fallback to IP if no PTR
+	}
+
+	// Step 3: return first PTR name (strip trailing dot)
+	hostname := strings.TrimSuffix(names[0], ".")
+	return hostname
+}
+
 func smtpCheck(mxHost, mailFrom, rcptTo string) (map[string]string, error) {
 	logs := make(map[string]string)
+
+	hostName := getMyHostname();
+
+	fmt.Println("HOSTNAME:", hostName)
 
 	// 1. Connect to MX host
 	conn, err := net.Dial("tcp", mxHost+":25")
@@ -31,7 +58,7 @@ func smtpCheck(mxHost, mailFrom, rcptTo string) (map[string]string, error) {
 
 	// Helper: send EHLO
 	sendEHLO := func(c net.Conn) (bool, error) {
-		_, err := fmt.Fprintf(c, "EHLO tm71.top\r\n")  // this should be your domain mail server
+		_, err := fmt.Fprintf(c, "EHLO %s\r\n", hostName)  
 		if err != nil {
 			return false, err
 		}
@@ -253,18 +280,23 @@ func main() {
 		if code == 250 {
 			isOk = true
 		}
-		risky := false
-		if strings.Contains(mxHost, domain) {
-			risky = true
+
+		risky := true
+		list := []string{"gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com", "yandex.ru", "protonmail.com", "zohomail.com", "gmx.com", "aol.com", "live.com", "msn.com", "rediffmail.com", "163.com", "126.com", "sina.com.cn", "sohu.com", "aliyun.com", "yeah.net", "foxmail.com", "tencent.com", "naver.com", "daum.net", "hanmail.net", "lycos.com", "mail.com", "inbox.com", "hushmail.com", "fastmail.com", "tutanota.com"}
+		if slices.Contains(list, strings.TrimSpace(strings.ToLower(domain))) {
+			risky = false
 		}
-		c.JSON(200, gin.H{
+		var result = gin.H{
 			"status":        status,
 			"mx_host":       mxHost,
 			"logs":          logs,
 			"isDeliverable": isOk,
-			"risky":         risky,
 			"errorStatus":   false,
-		})
+		}
+		if isOk {
+			result["risky"] = risky
+		}
+		c.JSON(200, result)
 	})
 
 	app.Run(":8080")
