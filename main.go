@@ -282,7 +282,7 @@ func main() {
 		}
 
 		risky := true
-		list := []string{"gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com", "yandex.ru", "protonmail.com", "zohomail.com", "gmx.com", "aol.com", "live.com", "msn.com", "rediffmail.com", "163.com", "126.com", "sina.com.cn", "sohu.com", "aliyun.com", "yeah.net", "foxmail.com", "tencent.com", "naver.com", "daum.net", "hanmail.net", "lycos.com", "mail.com", "inbox.com", "hushmail.com", "fastmail.com", "tutanota.com"}
+		list := []string{"gmail.com", "outlook.com", "hotmail.com", "icloud.com", "yandex.ru", "protonmail.com", "zohomail.com", "gmx.com", "live.com", "msn.com", "rediffmail.com", "163.com", "126.com", "sina.com.cn", "sohu.com", "aliyun.com", "yeah.net", "foxmail.com", "tencent.com", "naver.com", "daum.net", "hanmail.net", "lycos.com", "mail.com", "inbox.com", "hushmail.com", "fastmail.com", "tutanota.com"}
 		if slices.Contains(list, strings.TrimSpace(strings.ToLower(domain))) {
 			risky = false
 		}
